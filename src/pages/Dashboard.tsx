@@ -2,8 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import api from '../api';
 import { 
-  Building2, Users, Activity, Plus, Trash2, 
-  X, Loader2, Search, CheckCircle2, AlertCircle 
+  Building2, Users, Plus, Trash2, 
+  X, Loader2, Search, CheckCircle2, AlertCircle, FileText
 } from 'lucide-react';
 
 interface Clinic {
@@ -18,6 +18,8 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [search, setSearch] = useState('');
+  const [analytics, setAnalytics] = useState<{ total_clinics: number, total_patients: number, total_files: number } | null>(null);
+  const [analyticsError, setAnalyticsError] = useState(false);
 
   // Form State
   const [formData, setFormData] = useState({ clinic_name: '', owner_name: '', owner_email: '', owner_role: 'Doctor' });
@@ -35,8 +37,20 @@ export default function Dashboard() {
     }
   };
 
+  const fetchAnalytics = async () => {
+    try {
+      const res = await api.get('/v1/superadmin/analytics');
+      setAnalytics(res.data.data);
+      setAnalyticsError(false);
+    } catch (error) {
+      console.error('Failed to fetch analytics', error);
+      setAnalyticsError(true);
+    }
+  };
+
   useEffect(() => {
     fetchClinics();
+    fetchAnalytics();
   }, []);
 
   const handleDelete = async (id: string) => {
@@ -69,7 +83,7 @@ export default function Dashboard() {
     }
   };
 
-  const totalUsers = clinics.reduce((acc, curr) => acc + curr.users_count, 0);
+
   const filteredClinics = clinics.filter(c => c.name.toLowerCase().includes(search.toLowerCase()));
 
   if (loading) {
@@ -100,7 +114,7 @@ export default function Dashboard() {
           <div className="flex items-center justify-between relative z-10">
             <div>
               <p className="text-sm font-medium text-zinc-400 mb-1">Total Clinics</p>
-              <h3 className="text-4xl font-bold text-white tracking-tight">{clinics.length}</h3>
+              <h3 className="text-4xl font-bold text-white tracking-tight">{analyticsError ? <AlertCircle className="w-8 h-8 text-red-500" /> : analytics ? analytics.total_clinics : <Loader2 className="w-6 h-6 animate-spin" />}</h3>
             </div>
             <div className="w-12 h-12 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center">
               <Building2 className="w-6 h-6 text-indigo-400" />
@@ -112,8 +126,8 @@ export default function Dashboard() {
           <div className="absolute inset-0 bg-gradient-to-br from-purple-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
           <div className="flex items-center justify-between relative z-10">
             <div>
-              <p className="text-sm font-medium text-zinc-400 mb-1">Total Sub-Accounts</p>
-              <h3 className="text-4xl font-bold text-white tracking-tight">{totalUsers}</h3>
+              <p className="text-sm font-medium text-zinc-400 mb-1">Total Patients</p>
+              <h3 className="text-4xl font-bold text-white tracking-tight">{analyticsError ? <AlertCircle className="w-8 h-8 text-red-500" /> : analytics ? analytics.total_patients : <Loader2 className="w-6 h-6 animate-spin" />}</h3>
             </div>
             <div className="w-12 h-12 rounded-2xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center">
               <Users className="w-6 h-6 text-purple-400" />
@@ -125,11 +139,11 @@ export default function Dashboard() {
           <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
           <div className="flex items-center justify-between relative z-10">
             <div>
-              <p className="text-sm font-medium text-zinc-400 mb-1">System Health</p>
-              <h3 className="text-4xl font-bold text-white tracking-tight">Optimal</h3>
+              <p className="text-sm font-medium text-zinc-400 mb-1">Total Documents</p>
+              <h3 className="text-4xl font-bold text-white tracking-tight">{analyticsError ? <AlertCircle className="w-8 h-8 text-red-500" /> : analytics ? analytics.total_files : <Loader2 className="w-6 h-6 animate-spin" />}</h3>
             </div>
             <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center">
-              <Activity className="w-6 h-6 text-emerald-400" />
+              <FileText className="w-6 h-6 text-emerald-400" />
             </div>
           </div>
         </motion.div>
