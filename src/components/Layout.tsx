@@ -1,11 +1,13 @@
 import React from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
-import { Building2, LayoutDashboard, LogOut } from 'lucide-react';
+import { useNavigate, useLocation, useParams } from 'react-router-dom';
+import { Building2, LayoutDashboard, LogOut, ArrowLeft } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   const navigate = useNavigate();
   const location = useLocation();
+
+  const isClinicDetail = location.pathname.startsWith('/clinic/');
 
   const handleLogout = () => {
     localStorage.removeItem('superadmin_token');
@@ -43,6 +45,16 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             <LayoutDashboard className="w-5 h-5" />
             <span className="font-medium">Analytics</span>
           </button>
+
+          {isClinicDetail && (
+            <button 
+              onClick={() => navigate('/')}
+              className="w-full flex items-center gap-3 px-4 py-3 rounded-xl bg-indigo-500/10 text-indigo-300 border border-indigo-500/20"
+            >
+              <ArrowLeft className="w-5 h-5" />
+              <span className="font-medium text-sm">Back to Overview</span>
+            </button>
+          )}
         </div>
 
         <div className="p-4 border-t border-zinc-800/50">
